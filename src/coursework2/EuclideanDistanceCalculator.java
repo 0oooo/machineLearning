@@ -2,39 +2,22 @@ package coursework2;
 
 public class EuclideanDistanceCalculator {
 	
-	private DataSet bitmapsList1;
-	private DataSet bitmapsList2;
+	private DataSet dataSet1;
+	private DataSet dataSet2;
+	
+	private int sizeOfSample; 
 	
 	private int successIdentification; 
 	private int failedIdentification; 
 	
-	public EuclideanDistanceCalculator(DataReader dataReader1, DataReader dataReader2) {
-		bitmapsList1 = new DataSet();
-		bitmapsList2 = new DataSet();
+	public EuclideanDistanceCalculator(DataSet dataSet1, DataSet dataSet2) {
+		this.dataSet1 = dataSet1;
+		this.dataSet2 = dataSet2;
+		
+		sizeOfSample = dataSet1.getNumberOfBitmaps(); 
 		
 		successIdentification = 0;
 		failedIdentification = 0; 
-		
-		try {
-			dataReader1.readData(); 
-			bitmapsList1 = dataReader1.getDataSet();
-			
-			dataReader2.readData();
-			bitmapsList2 = dataReader2.getDataSet();
-			
-			bitmapsList1.test(bitmapsList2);
-			
-		}catch(Exception generalException){
-			System.out.println(generalException.getMessage());
-		}
-	}
-	
-	private void checkBitmapSimilarities(Bitmap bitmap1, Bitmap bitmap2) {
-		if(bitmap1.getRepresentedNumber() == bitmap2.getRepresentedNumber()) {
-			successIdentification++; 
-		}else {
-			failedIdentification++; 
-		}
 	}
 	
 	private void euclideanDistanceBetweenDatasets(DataSet set1, DataSet set2) {
@@ -42,12 +25,12 @@ public class EuclideanDistanceCalculator {
 		successIdentification = 0; 
 		failedIdentification = 0; 
 		
-		for(Bitmap bitmap : set1.getList()) {
+		for(Bitmap bitmap : set1.getDataSet()) {
 			// 16 is the maximum, squared, times 64 digits of the list of bitmap block = at max 16384
 			double smallestDistance = 16385; 
 			Bitmap closestBitmap = new Bitmap(); 
 			
-			for(Bitmap bitmapDataSet2 : set2.getList()) {
+			for(Bitmap bitmapDataSet2 : set2.getDataSet()) {
 				double distanceBetweenBitmap = bitmap.calculateEuclideanDistance(bitmapDataSet2);
 				
 				if(distanceBetweenBitmap < smallestDistance) {
@@ -59,27 +42,35 @@ public class EuclideanDistanceCalculator {
 		}
 	}
 	
+	private void checkBitmapSimilarities(Bitmap bitmap1, Bitmap bitmap2) {
+		if(bitmap1.getRepresentedNumber() == bitmap2.getRepresentedNumber()) {
+			successIdentification++; 
+		}else {
+			failedIdentification++; 
+		}
+	}
 	
+	private double convertToPercentage(int rateToConvert) {
+		return (rateToConvert * 100 / sizeOfSample);
+	}
 	
 	public void twoFoldTest() {
 		//First fold of the test
-		euclideanDistanceBetweenDatasets(bitmapsList1, bitmapsList2);
+		euclideanDistanceBetweenDatasets(dataSet1, dataSet2);
 		
-		int successRate1 = successIdentification; 
-		int failedRate1 = failedIdentification; 
+		double successRate1 = convertToPercentage(successIdentification); 
 		
-		
-		
-		System.out.print("The first fold lead to " + (successRate1 * 100 / 2810) + "success"); // change that. Put constants
-		System.out.println(" and  " +  (failedRate1 * 100 / 2810) + " failures.");
+		System.out.print("The first fold lead to " + successIdentification + " successes"); // change that. Put constants
+		System.out.print(" and  " +  failedIdentification + " failures.");
+		System.out.println(" which is " + successRate1 + "% success.");
 		
 		//Second fold of the test
-		euclideanDistanceBetweenDatasets(bitmapsList2, bitmapsList1);
+		euclideanDistanceBetweenDatasets(dataSet2, dataSet1);
 		
-		int successRate2 = successIdentification; 
-		int failedRate2 = failedIdentification;
+		double successRate2 = convertToPercentage(successIdentification); 
 		
-		System.out.print("The first fold lead to " + (successRate2 * 100 / 2810) + "success");
-		System.out.println(" and  " + (failedRate2 * 100 / 2810) + " failures.");
+		System.out.print("The second fold lead to " + successIdentification + " successes"); // change that. Put constants
+		System.out.print(" and  " +  failedIdentification + " failures.");
+		System.out.println(" which is " + successRate2 + "% success.");
 	}
 }

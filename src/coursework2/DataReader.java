@@ -28,7 +28,7 @@ public class DataReader {
 		    	int numberOfPixels = Integer.parseInt(block);
 		    	bitmap.addBlock(numberOfPixels);
 		    }
-		    dataSet.addToList(bitmap);
+		    dataSet.addToDataSet(bitmap);
 		}
 		csvReader.close();
 	}
