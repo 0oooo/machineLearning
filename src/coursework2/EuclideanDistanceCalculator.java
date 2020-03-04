@@ -1,6 +1,10 @@
 package coursework2;
 
+
 public class EuclideanDistanceCalculator {
+	
+	private final int MAX_DISTANCE = 1000000; 
+	private final int PERCENT = 100; 
 	
 	private DataSet dataSet1;
 	private DataSet dataSet2;
@@ -10,40 +14,57 @@ public class EuclideanDistanceCalculator {
 	private int successIdentification; 
 	private int failedIdentification; 
 	
+	
+	/**
+	 * CONSTRUCTOR
+	 * @param dataSet1 DataSet Object to store the digit vectors of one file
+	 * @param dataSet2 DataSet Object to store the digit vectors of the other file
+	 */
 	public EuclideanDistanceCalculator(DataSet dataSet1, DataSet dataSet2) {
 		this.dataSet1 = dataSet1;
 		this.dataSet2 = dataSet2;
 		
-		sizeOfSample = dataSet1.getNumberOfBitmaps(); 
+		sizeOfSample = dataSet1.getDataSetSize(); 
 		
 		successIdentification = 0;
 		failedIdentification = 0; 
 	}
 	
-	private void euclideanDistanceBetweenDatasets(DataSet set1, DataSet set2) {
+	/**
+	 * Calculate the distance between each digit vector from one set to the other
+	 * Once the most similar digits are establishes, checks if the prediction is correct
+	 * and increase the success or failed rate. 
+	 * @param dataSet1 DataSet Object to store the digit vectors of one file 
+	 * @param dataSet2 DataSet Object to store the digit vectors of the other file
+	 */
+	private void euclideanDistanceBetweenDatasets(DataSet dataSet1, DataSet dataSet2) {
 		
 		successIdentification = 0; 
 		failedIdentification = 0; 
 		
-		for(Bitmap bitmap : set1.getDataSet()) {
-			// 16 is the maximum, squared, times 64 digits of the list of bitmap block = at max 16384
-			double smallestDistance = 16385; 
-			Bitmap closestBitmap = new Bitmap(); 
+		for(DigitVector digitVector : dataSet1.getFullDataSet()) {
+			double smallestDistance = MAX_DISTANCE; 
+			DigitVector otherDigitVector = new DigitVector(); 
 			
-			for(Bitmap bitmapDataSet2 : set2.getDataSet()) {
-				double distanceBetweenBitmap = bitmap.calculateEuclideanDistance(bitmapDataSet2);
+			for(DigitVector bitmapDataSet2 : dataSet2.getFullDataSet()) {
+				double distanceBetweenBitmap = digitVector.calculateEuclideanDistance(bitmapDataSet2);
 				
 				if(distanceBetweenBitmap < smallestDistance) {
 					smallestDistance = distanceBetweenBitmap; 
-					closestBitmap = bitmapDataSet2; 
+					otherDigitVector = bitmapDataSet2; 
 				}
 			}
-			checkBitmapSimilarities(bitmap,closestBitmap);
+			areRepresentedNumberSimilar(digitVector,otherDigitVector);
 		}
 	}
 	
-	private void checkBitmapSimilarities(Bitmap bitmap1, Bitmap bitmap2) {
-		if(bitmap1.getRepresentedNumber() == bitmap2.getRepresentedNumber()) {
+	/**
+	 * 
+	 * @param digitVector
+	 * @param otherDigitVector
+	 */
+	private void areRepresentedNumberSimilar(DigitVector digitVector, DigitVector otherDigitVector) {
+		if(digitVector.getRepresentedNumber() == otherDigitVector.getRepresentedNumber()) {
 			successIdentification++; 
 		}else {
 			failedIdentification++; 
@@ -51,16 +72,16 @@ public class EuclideanDistanceCalculator {
 	}
 	
 	private double convertToPercentage(int rateToConvert) {
-		return (rateToConvert * 100 / sizeOfSample);
+		return (rateToConvert * PERCENT / sizeOfSample);
 	}
 	
-	public void twoFoldTest() {
+	public void run() {
 		//First fold of the test
 		euclideanDistanceBetweenDatasets(dataSet1, dataSet2);
 		
 		double successRate1 = convertToPercentage(successIdentification); 
 		
-		System.out.print("The first fold lead to " + successIdentification + " successes"); // change that. Put constants
+		System.out.print("The first fold lead to " + successIdentification + " successes");
 		System.out.print(" and  " +  failedIdentification + " failures.");
 		System.out.println(" which is " + successRate1 + "% success.");
 		
@@ -69,8 +90,9 @@ public class EuclideanDistanceCalculator {
 		
 		double successRate2 = convertToPercentage(successIdentification); 
 		
-		System.out.print("The second fold lead to " + successIdentification + " successes"); // change that. Put constants
+		System.out.print("The second fold lead to " + successIdentification + " successes");
 		System.out.print(" and  " +  failedIdentification + " failures.");
 		System.out.println(" which is " + successRate2 + "% success.");
 	}
+	
 }
