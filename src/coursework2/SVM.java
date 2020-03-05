@@ -3,6 +3,13 @@ package coursework2;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * SVM
+ * 
+ * Not used. Attempt to create a svm. 
+ * @author CC
+ *
+ */
 public class SVM {
 	
 	public int FUNCTIONAL_MARGIN = 1;
@@ -63,7 +70,6 @@ public class SVM {
 	}
 
 	public boolean isOnHyperplane(ArrayList<Double> vectorToTest, ArrayList<Double> hyperplane, double bias) {
-
 		double sign = 1;
 
 		try {
@@ -120,7 +126,6 @@ public class SVM {
 	 * @param expectedSign
 	 * @return
 	 */
-	
 	private double calculateFunctionalMargin(ArrayList<Double> hyperplane, double bias, DigitVector digitVector,
 			int expectedSign) {
 		ArrayList<Double> digitVectorAsList = digitVector.getPixelsGroup();
@@ -146,13 +151,10 @@ public class SVM {
 			int expectedSign) {
 
 		ArrayList<Double> digitVectorAsList = digitVector.getPixelsGroup();
-
 		double hyperplaneNorm = utils.getVectorNorm(hyperplane);
-
 		ArrayList<Double> normalizedHyperplane = utils.getNormalizedVector(hyperplane, hyperplaneNorm);
-
 		bias = bias / hyperplaneNorm;
-
+		
 		return (expectedSign + (utils.dotProduct(digitVectorAsList, normalizedHyperplane) + bias));
 	}
 
@@ -207,9 +209,4 @@ public class SVM {
 	public boolean isSoftConstraintSatisfied(ArrayList<Double> hyperplane, double bias, DigitVector digitVector, int expectedSign, double zeta) {
 		return calculateFunctionalMargin(hyperplane, bias, digitVector, expectedSign) >= (1 - zeta); 
 	} 
-	
-	
-	// TODO If we have k hyperplanes, we will getClosestVectorFromHyperplane for all
-	// hyperplanes and
-	// select the one that has the biggest "shortest" distance
 }

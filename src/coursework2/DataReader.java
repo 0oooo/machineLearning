@@ -4,56 +4,88 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+/**
+ * DataReader
+ * 
+ * Class that gets a file, and convert it into a DataSet Object
+ * 
+ * @author CC
+ *
+ */
 public class DataReader {
-	
-	private static int DEFAULT_SPLIT_PARTITION = 50; 
-	
-	private String path; 
+
+	private static int DEFAULT_SPLIT_PARTITION = 50;
+
+	private String path;
 	private DataSet dataSet;
-	
-	public DataReader(String path) throws IOException{
-		this(path, DEFAULT_SPLIT_PARTITION); 
+
+	/**
+	 * Default constructor when no split partition is given
+	 * 
+	 * @param path of the file to read
+	 * @throws IOException if there is any issue with the given file
+	 */
+	public DataReader(String path) throws IOException {
+		this(path, DEFAULT_SPLIT_PARTITION);
 	}
-	
-	public DataReader(String path, int splitSetPartition) throws IOException{
+
+	/**
+	 * Constructor
+	 * @param path to read the file
+	 * @param splitSetPartition percentage of the file to use for training
+	 * and by deduction the other part is used for testing (not used)
+	 * @throws IOException if there is any issue with the given file
+	 */
+	public DataReader(String path, int splitSetPartition) throws IOException {
 		this.path = path;
-		dataSet = new DataSet(splitSetPartition); 
+		dataSet = new DataSet(splitSetPartition);
 		readData(splitSetPartition);
 	}
-	
-	// TODO can implement a function to get the most significant indexes 
-	// (AKA the ones that changes the most between rows). 
-	// The ones selected at the moment have the highest median, 
-	// so we assume there is more information for us to work with 
+
+	// TODO can implement a function to get the most significant indexes
+	// (AKA the ones that changes the most between rows).
+	// The ones selected at the moment have the highest median,
+	// so we assume there is more information for us to work with
 	private double[] simplifyDigitVector(DigitVector digitVector) {
-		double[] simplifiedVector = {digitVector.get(3), digitVector.get(59)}; 
+		double[] simplifiedVector = { digitVector.get(3), digitVector.get(59) }; // TODO: variabilise if I can do the
+																					// variance stuff
 		return simplifiedVector;
 	}
-	
-	public void readData(int splitSetPartition) throws IOException{
+
+	/**
+	 * Read the file and split its content into vector representing each row
+	 * Add that digit vector to a dataset. 
+	 * Simplify that digit, and add it to a hashmapmap in the dataset
+	 * @param splitSetPartition (not used)
+	 * @throws IOException if any issue arises with the file
+	 */
+	public void readData(int splitSetPartition) throws IOException {
 		BufferedReader csvReader = new BufferedReader(new FileReader(path));
 		String row = "";
 		while ((row = csvReader.readLine()) != null) {
+			//Split and read each element to add them to a vector representing the digit
 			DigitVector digitVector = new DigitVector();
-			
-		    String[] pixelGroup = row.split(",");
-		    
-		    //Each digit block has a number of pixels we add to that block
-		    for(String pixel : pixelGroup){
-		    	double pixelValue = Double.parseDouble(pixel);
-		    	digitVector.addPixelGroup(pixelValue);
-		    }
-		    dataSet.addToDataSet(digitVector);
-		    
-		    double[] simpleDigitVector =  simplifyDigitVector(digitVector);
-		    int representedNumber = (int) digitVector.get(64); 
-		    dataSet.addSimplifyVector(representedNumber, simpleDigitVector ); // Map to split easily per category in svm 
+			String[] pixelGroup = row.split(",");
+			for (String pixel : pixelGroup) {
+				double pixelValue = Double.parseDouble(pixel);
+				digitVector.addPixelGroup(pixelValue);
+			}
+			//add the vector representing a digit to the dataset
+			dataSet.addToDataSet(digitVector);
+
+			//Simplify the vector and add it to a hashmap that associate each vector to its represented number
+			double[] simpleDigitVector = simplifyDigitVector(digitVector);
+			int representedNumber = (int) digitVector.get(64);
+			dataSet.addSimplifyVector(representedNumber, simpleDigitVector); 
 		}
 		dataSet.splitDataSet(splitSetPartition);
 		csvReader.close();
 	}
-	
-	public DataSet getDataSet(){
+
+	/** 
+	 * @return the dataset as DataSet Object
+	 */
+	public DataSet getDataSet() {
 		return dataSet;
 	}
 

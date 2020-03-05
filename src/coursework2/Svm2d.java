@@ -4,98 +4,93 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Svm2d 
+ * 
+ * Implementation of the Support Vector Machine algorithm for 2 dimensions vectors. 
+ * @author CC
+ *
+ */
 public class Svm2d {
 
-	private MathUtilities utils = new MathUtilities();
-	
-	// Digits to identify = 0 to 9 
-	private final int NUMBER_OF_DIGITS = 10; 
-	
+	private final int NUMBER_OF_DIGITS = 10; // Digits to identify = 0 to 9
 	private final double QUOTA_OF_ERROR = 0.05;
+	private final int POSITIVE_SIDE = 1; 
+	private final double LAST_POSSIBLE_DIGIT = 9.0;
+	private final int PERCENTAGE_DIVISOR = 100;
+	
+	private MathUtilities utils = new MathUtilities();
 	private int maxAttemptPerDigit;
-	private int tolerated_misclassification; 
-
+	private int tolerated_misclassification;
 	private HashMap<Integer, ArrayList<double[]>> mapDigitToVector;
 	private HashMap<Double, double[]> mapDigitToMargin;
-
-	// < [ 1, 1, 0, -1] , [ a, b, d, s], ... >
-	// a = slope of line,
-	// b = yItersect (so a and b define the margin)
-	// d = represented digit
-	// s = side of the line
 	private ArrayList<double[]> listOfMargin;
 	private ArrayList<double[]> simplifiedDataSet;
-
 	private int sizeOfSample;
 	private int successIdentification;
 	private int failedIdentification;
 
-	
-	Svm2d(DataSet dataset, DataSet testingSet) {
-		mapDigitToVector = dataset.getSimplifiedDigitToVector();
+	/**
+	 * Constructor
+	 * @param trainingSet set to train the algorithm
+	 * @param testingSet set to test the algorithm
+	 */
+	Svm2d(DataSet trainingSet, DataSet testingSet) {
+		mapDigitToVector = trainingSet.getSimplifiedDigitToVector();
 		mapDigitToMargin = new HashMap<Double, double[]>();
-
 		listOfMargin = new ArrayList<double[]>();
-
 		testingSet.generateSimplifiedDataSet();
 		simplifiedDataSet = testingSet.getSimplifiedDataSet();
 		sizeOfSample = testingSet.getDataSetSize();
-
 		successIdentification = 0;
 		failedIdentification = 0;
-		
-		// Sets the number of attempts to find a margin between 2 digits
-		// number of digit 1 * number of digit 2 
-		maxAttemptPerDigit = sizeOfSample / NUMBER_OF_DIGITS * 2;
-		
-		setMisclassificationTolerance(false);	
+		maxAttemptPerDigit = sizeOfSample / NUMBER_OF_DIGITS * 2; // number of attempts to find a margin between 2 digits
+		setMisclassificationTolerance(false);
 	}
-	
+
+	/**
+	 * Set the tolerance to error to allow to generate soft margin between vectors. 
+	 * @param modifyingTolerance flag is true if this method is called because a margin
+	 * was not found fast enough and we need to increment the number of vectors that can be misclassified
+	 */
 	private void setMisclassificationTolerance(boolean modifyingTolerance) {
-		
-		if(modifyingTolerance) {
-			tolerated_misclassification++; 
-		}else {
+		if (modifyingTolerance) {
+			tolerated_misclassification++;
+		} else {
 			tolerated_misclassification = (int) Math.floor(sizeOfSample / NUMBER_OF_DIGITS * QUOTA_OF_ERROR);
-			
-			// Small data set still have one tolerated misclassification per digit 
-			if(tolerated_misclassification == 0) {
+			// Small data set still have one tolerated misclassification per digit
+			if (tolerated_misclassification == 0) {
 				tolerated_misclassification++;
 			}
 		}
 	}
-	
-	
-	/*
-	 * ----------------------------------------------- 
-	 * -----------TRAINING FUNCTIONS------------------ 
-	 * -----------------------------------------------
-	 */
 
+	
+	//--------------TRAINING FUNCTIONS-----------------//
 
 	/**
-	 * @param line
-	 * @param allDigit1
-	 * @param allDigit2
-	 * @return
+	 * Check if the digit of one category get classified on one side of a line
+	 * and the the digit of the other category get classified on the other side 
+	 * Has a tolerance to misclassification
+	 * @param line a potential separator to be checked
+	 * @param allDigit1 all vectors of one category (one represented number) 
+	 * @param allDigit2 all vectors of the other category (one represented number) 
+	 * @return true if the line split the data properly, false otherwise 
 	 */
 	public boolean lineSplitDigit(double[] line, ArrayList<double[]> allDigit1, ArrayList<double[]> allDigit2) {
-
 		double sideFirstCategory = utils.getSideLine(line, allDigit1.get(0));
-
 		int misclassified = 0;
 		for (double[] digit : allDigit1) {
-			if (misclassified >  tolerated_misclassification) {
+			if (misclassified > tolerated_misclassification) {
 				return false;
 			}
 			if (utils.getSideLine(line, digit) != sideFirstCategory) {
 				misclassified++;
 			}
 		}
-		
 		misclassified = 0;
 		for (double[] digit : allDigit2) {
-			if (misclassified >  tolerated_misclassification) {
+			if (misclassified > tolerated_misclassification) {
 				return false;
 			}
 			if (utils.getSideLine(line, digit) == sideFirstCategory) {
@@ -105,21 +100,27 @@ public class Svm2d {
 
 		System.out.println("---------------!! LINE FOUND !!----------------");
 		System.out.println("-----------------------------------------------");
-		return true; 
+		return true;
 	}
 
+	/** 
+	 * Find a potential line to separate two vectors representing different digits
+	 * Draw a line between 2 given points, find the middle, draw a perpendicular line 
+	 * and adds the number that line is meant to separate positively 
+	 * (when using that line and vectors of that represented number, the result should be positive)
+	 * @param supportVector1 potential support vector
+	 * @param supportVector2 potential support vector
+	 * @param representedNumber that will be associated to the line
+	 * @return a line perpendicular to the line that passes through 2 potential support vectors
+	 */
 	public double[] findSeparatingLine(double[] supportVector1, double[] supportVector2, double representedNumber) {
-		
 		double[] lineBetweenSupportVector = utils.drawLineBetween2Points(supportVector1, supportVector2);
-
 		double[] midPoint = utils.findMidPoint(supportVector1, supportVector2);
-
-		double[] separatingLine = new double[3];
 		double[] perpendicularLine = utils.getPerpendicularLine(lineBetweenSupportVector, midPoint);
+		double[] separatingLine = new double[3];
 		separatingLine[0] = perpendicularLine[0];
 		separatingLine[1] = perpendicularLine[1];
 		separatingLine[2] = representedNumber;
-//		System.out.println("separatingLine selected : " + separatingLine[0] + " : " + separatingLine[1]);
 
 		return separatingLine;
 	}
@@ -128,48 +129,53 @@ public class Svm2d {
 	// already
 	// or taking the median position and checking if a vector is between that median
 	// and the other category vector
+	/**
+	 * Return random vector out of the list of all digits
+	 */
 	public double[] findPotentialVector(ArrayList<double[]> allDigit) {
 		int randomNum = ThreadLocalRandom.current().nextInt(0, allDigit.size());
 		return allDigit.get(randomNum);
 	}
 
 	/**
-	 * Finds a margin between 2 vectors. 
-	 * Adds the found margin between the two categories to
-	 * the hashmap of digit -> margin The digit is the one
-	 * represented by the first category (allDigit1)
+	 * Tries to generate new line between two new vectors
+	 * while it has not found a line that separates two categories (represented numbers).
+	 * If a proper separator is found, it adds it to a map
+	 * Else it readjusts the tolerance to accepted misclassification . 
+	 * 
+	 * NB: list of margin =  < [ 1, 1, 0] , [ a, b, d], ... >
+	 * a = slope of line,
+	 * b = yItersect (so a and b define the margin)
+	 * d = represented digit
 	 */
 	public void findMarginBetweenVectors(ArrayList<double[]> allDigit1, ArrayList<double[]> allDigit2,
 			double representedNumber) {
 
 		// Reset the misclassification tolerance to original value for next margin
-		setMisclassificationTolerance(false); 
+		setMisclassificationTolerance(false);
 		int attemptToFindMargin = 0;
 		double[] margin = { 0, 0, 0 };
 
 		do {
-			attemptToFindMargin++; 
-			
-			if(attemptToFindMargin > maxAttemptPerDigit){
+			attemptToFindMargin++;
+			if (attemptToFindMargin > maxAttemptPerDigit) {
 				System.out.println("Margin was not found. Increasing the misclassification tolerance.");
 				setMisclassificationTolerance(true);
 				attemptToFindMargin = 0;
 			}
-			
 			double[] potentialSupportVector1 = findPotentialVector(allDigit1);
 			double[] potentialSupportVector2 = findPotentialVector(allDigit2);
-			
 			margin = findSeparatingLine(potentialSupportVector1, potentialSupportVector2, representedNumber);
-			
-			
 		} while (!lineSplitDigit(margin, allDigit1, allDigit2));
 
 		listOfMargin.add(margin);
 		mapDigitToMargin.put(representedNumber, margin);
 	}
 
+	/**
+	 * Run the training part of the algorithm
+	 */
 	public void train() {
-
 		System.out.println("Training starting...");
 
 		for (int representedNumber = 0; representedNumber < 9; representedNumber++) {
@@ -186,21 +192,29 @@ public class Svm2d {
 		}
 	}
 
-	/*
-	 * ----------------------------------------------- 
-	 * -----------TESTING FUNCTIONS---------------------
-	 * -----------------------------------------------
-	 */
+	
+	//--------------TESTING FUNCTIONS-----------------//
 
+	/**
+	 * Checks if a vector is on the positive side of the margin
+	 * @param vector to check 
+	 * @param margin 
+	 * @return true if it is, else otherwise
+	 */
 	private boolean isOnSideOfMargin(double[] vector, double[] margin) {
 		int sideOfVector = utils.getSideLine(vector, margin);
-		return sideOfVector == 1;
+		return sideOfVector == POSITIVE_SIDE;
 	}
 
+	/**
+	 * Attempt to predict what is the represented number of a vector 
+	 * using the margin found by the training part of the algorithm
+	 * @param vector to check
+	 * @return the predicted represented number
+	 */
 	private double predictRepresentedNumber(double[] vector) {
-		// 9 has no margin to define it, it's the left digit when nothing has worked
-		// it's not perfect as some could be 9.0 by chance.
-		double prediction = 9.0;
+		// Left digit when nothing has worked
+		double prediction = LAST_POSSIBLE_DIGIT;
 
 		for (double[] margin : listOfMargin) {
 			if (isOnSideOfMargin(margin, vector)) {
@@ -211,19 +225,24 @@ public class Svm2d {
 		return prediction;
 	}
 
-	public void printSuccessRate() {
+	/**
+	 * Print the rate of success and failed identification 
+	 */
+	public void printPredictionRate() {
 		System.out.println("Success identification: " + successIdentification);
 		System.out.println("Failed identification: " + failedIdentification);
-		System.out.println(Math.round(successIdentification * 100 / sizeOfSample) + "% success.");
+		System.out.println(Math.round(successIdentification * PERCENTAGE_DIVISOR / sizeOfSample) + "% success.");
 	}
 
+	/**
+	 * Run the test part of the algorithm
+	 * Check for each vector what number they represent according to the set of recorded margins
+	 * Increase a success of failed identification number. 
+	 */
 	public void test() {
-		
 		System.out.println("Testing starting...");
-
 		successIdentification = 0;
 		failedIdentification = 0;
-
 		for (double[] vector : simplifiedDataSet) {
 			double verificationNumber = vector[2];
 			double[] coordinate = { vector[0], vector[1] };
@@ -237,15 +256,15 @@ public class Svm2d {
 //				System.out.println("Prediction = " + prediction + " and actual number is " + verificationNumber);
 			}
 		}
-		printSuccessRate();
+		printPredictionRate();
 	}
 
-	/*
-	 * ----------------------------------------------- 
-	 * -----------DEBUG FUNCTIONS---------------------
-	 * -----------------------------------------------
-	 */
+	
+	//--------------DEBUG FUNCTIONS-----------------//
 
+	/**
+	 * Print the list of found margins
+	 */
 	public void printMargin() {
 		for (double key : mapDigitToMargin.keySet()) {
 			System.out.print(key + "  --> ");
