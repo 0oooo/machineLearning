@@ -21,7 +21,7 @@ public class Svm2d {
 	
 	private MathUtilities utils = new MathUtilities();
 	private int maxAttemptPerDigit;
-	private int tolerated_misclassification;
+	private int toleratedMisclassification;
 	private HashMap<Integer, ArrayList<double[]>> mapDigitToVector;
 	private HashMap<Double, double[]> mapDigitToMargin;
 	private ArrayList<double[]> listOfMargin;
@@ -31,14 +31,10 @@ public class Svm2d {
 	private int failedIdentification;
 
 	/**
-	 * Constructor
-	 * @param trainingSet set to train the algorithm
-	 * @param testingSet set to test the algorithm
+	 * Initialise the data structure necessary for running the svm. 
+	 * @param trainingSet
+	 * @param testingSet
 	 */
-	Svm2d() {
-
-	}
-	
 	private void initialiseSvmDataStructures(DataSet trainingSet, DataSet testingSet) {
 		mapDigitToVector = trainingSet.getSimplifiedDigitToVector();
 		mapDigitToMargin = new HashMap<Double, double[]>();
@@ -59,12 +55,12 @@ public class Svm2d {
 	 */
 	private void setMisclassificationTolerance(boolean modifyingTolerance) {
 		if (modifyingTolerance) {
-			tolerated_misclassification++;
+			toleratedMisclassification++;
 		} else {
-			tolerated_misclassification = (int) Math.floor(sizeOfSample / NUMBER_OF_DIGITS * QUOTA_OF_ERROR);
+			toleratedMisclassification = (int) Math.floor(sizeOfSample / NUMBER_OF_DIGITS * QUOTA_OF_ERROR);
 			// Small data set still have one tolerated misclassification per digit
-			if (tolerated_misclassification == 0) {
-				tolerated_misclassification++;
+			if (toleratedMisclassification == 0) {
+				toleratedMisclassification++;
 			}
 		}
 	}
@@ -85,7 +81,7 @@ public class Svm2d {
 		double sideFirstCategory = utils.getSideLine(line, allDigit1.get(0));
 		int misclassified = 0;
 		for (double[] digit : allDigit1) {
-			if (misclassified > tolerated_misclassification) {
+			if (misclassified > toleratedMisclassification) {
 				return false;
 			}
 			if (utils.getSideLine(line, digit) != sideFirstCategory) {
@@ -94,15 +90,16 @@ public class Svm2d {
 		}
 		misclassified = 0;
 		for (double[] digit : allDigit2) {
-			if (misclassified > tolerated_misclassification) {
+			if (misclassified > toleratedMisclassification) {
 				return false;
 			}
 			if (utils.getSideLine(line, digit) == sideFirstCategory) {
 				misclassified++;
 			}
 		}
-
+		
 		System.out.println("---------------!! LINE FOUND !!----------------");
+		System.out.println("Tolerated misclassification: " + toleratedMisclassification);
 		System.out.println("-----------------------------------------------");
 		return true;
 	}
@@ -129,9 +126,6 @@ public class Svm2d {
 		return separatingLine;
 	}
 
-	// TODO this method can be improved by checking what vector has been already chosen
-	// or taking the median position and checking if a vector is between that median
-	// and the other category vector
 	/**
 	 * Return random vector out of the list of all digits
 	 */
@@ -153,7 +147,6 @@ public class Svm2d {
 	 */
 	public void findMarginBetweenVectors(ArrayList<double[]> allDigit1, ArrayList<double[]> allDigit2,
 			double representedNumber) {
-
 		// Reset the misclassification tolerance to original value for next margin
 		setMisclassificationTolerance(false);
 		int attemptToFindMargin = 0;
@@ -279,13 +272,13 @@ public class Svm2d {
 	//-------------- RUN -----------------//
 	
 	public void run(DataSet trainingSet, DataSet testingSet) {
-		
 		initialiseSvmDataStructures(trainingSet, testingSet);
 		train();
 		test();
 		
 		System.out.print("First fold.");
 		printPredictionRate();
+		
 
 		initialiseSvmDataStructures(testingSet, trainingSet);
 		train();
@@ -293,5 +286,6 @@ public class Svm2d {
 		
 		System.out.print("Second fold.");
 		printPredictionRate();
+		
 	}
 }

@@ -224,7 +224,7 @@ public class DataSet {
 	}
 	
 	/**
-	 * For each pixel group (colum of the data set), calculate the standard variation 
+	 * For each pixel group (column of the data set), calculate the standard variation 
 	 * @param listOfMeans means of each column
 	 * @return a list of standard variation per pixel group (column)
 	 */
@@ -307,16 +307,9 @@ public class DataSet {
 	}
 
 		
-	
-	//---------------ATTEMPT-----------------//
-	
-	
-	
-	
-	//----------------DEBUG-----------------//
-	
 	//---------------------DEBUG--------------------//
 	
+
 	/**
 	 * Print list of full digits
 	 */
@@ -421,5 +414,6 @@ public class DataSet {
 		System.out.print("(index " + indexOfClosest + "): ");
 		otherList.getFullDataSet().get(indexOfClosest).printDigit();
 	}
+
 
 }

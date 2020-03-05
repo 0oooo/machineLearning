@@ -4,7 +4,7 @@ package coursework2;
  * EuclideanDistanceCalculator 
  * 
  * implements the nearest neighbour algorithm using Euclidean distance 
- * to find what number are the most similar between two datasets.
+ * to find what number are the most similar between two data sets.
  */
 public class EuclideanDistanceCalculator {
 
@@ -83,8 +83,8 @@ public class EuclideanDistanceCalculator {
 	}
 
 	/**
-	 * Run two-fold test, checking the digit of one dataset to the other, and then
-	 * inversing.
+	 * Run two-fold test, checking the digit of one data set to the other, and then
+	 * inverting.
 	 */
 	public void run() {
 		euclideanDistanceBetweenDatasets(dataSet1, dataSet2);
