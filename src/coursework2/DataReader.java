@@ -42,20 +42,9 @@ public class DataReader {
 		readData(splitSetPartition);
 	}
 
-	// TODO can implement a function to get the most significant indexes
-	// (AKA the ones that changes the most between rows).
-	// The ones selected at the moment have the highest median,
-	// so we assume there is more information for us to work with
-	private double[] simplifyDigitVector(DigitVector digitVector) {
-		double[] simplifiedVector = { digitVector.get(3), digitVector.get(59) }; // TODO: variabilise if I can do the
-																					// variance stuff
-		return simplifiedVector;
-	}
-
 	/**
 	 * Read the file and split its content into vector representing each row
 	 * Add that digit vector to a dataset. 
-	 * Simplify that digit, and add it to a hashmapmap in the dataset
 	 * @param splitSetPartition (not used)
 	 * @throws IOException if any issue arises with the file
 	 */
@@ -72,13 +61,9 @@ public class DataReader {
 			}
 			//add the vector representing a digit to the dataset
 			dataSet.addToDataSet(digitVector);
-
-			//Simplify the vector and add it to a hashmap that associate each vector to its represented number
-			double[] simpleDigitVector = simplifyDigitVector(digitVector);
-			int representedNumber = (int) digitVector.get(64);
-			dataSet.addSimplifyVector(representedNumber, simpleDigitVector); 
 		}
 		dataSet.splitDataSet(splitSetPartition);
+		dataSet.generateSimpleVector();
 		csvReader.close();
 	}
 
