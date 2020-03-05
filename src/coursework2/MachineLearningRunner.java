@@ -29,14 +29,12 @@ public class MachineLearningRunner {
 	 * @param testingSet  is the dataset to test the algorithms
 	 */
 	public static void debugDataSet(DataSet trainingSet, DataSet testingSet) {
-//		trainingSet.printDataSet();
-//		trainingSet.printDataMap(); 
-//		trainingSet.printSimplifiedVector();
+		trainingSet.printDataSet();
+		trainingSet.printDataMap(); 
+		trainingSet.printSimplifiedVector();
 
-		trainingSet.findMostSignificantPixels();
-
-//		testingSet.generateSimplifiedDataSet();
-//		testingSet.printSimplifiedDataSet(); 	
+		testingSet.generateSimplifiedDataSet();
+		testingSet.printSimplifiedDataSet(); 	
 	}
 
 	/**
@@ -59,10 +57,8 @@ public class MachineLearningRunner {
 	 * @param testingSet: dataset Object to test the algorithms
 	 */
 	public static void runSvmAlgorithm(DataSet trainingSet, DataSet testingSet) {
-		Svm2d svm = new Svm2d(trainingSet, testingSet);
-		svm.train();
-		svm.printMargin();
-		svm.test();
+		Svm2d svm = new Svm2d();
+		svm.run(trainingSet, testingSet); 
 	}
 
 	/**

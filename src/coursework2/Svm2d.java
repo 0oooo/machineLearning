@@ -35,7 +35,11 @@ public class Svm2d {
 	 * @param trainingSet set to train the algorithm
 	 * @param testingSet set to test the algorithm
 	 */
-	Svm2d(DataSet trainingSet, DataSet testingSet) {
+	Svm2d() {
+
+	}
+	
+	private void initialiseSvmDataStructures(DataSet trainingSet, DataSet testingSet) {
 		mapDigitToVector = trainingSet.getSimplifiedDigitToVector();
 		mapDigitToMargin = new HashMap<Double, double[]>();
 		listOfMargin = new ArrayList<double[]>();
@@ -125,8 +129,7 @@ public class Svm2d {
 		return separatingLine;
 	}
 
-	// TODO this method can be improved by checking what vector has been chosen
-	// already
+	// TODO this method can be improved by checking what vector has been already chosen
 	// or taking the median position and checking if a vector is between that median
 	// and the other category vector
 	/**
@@ -159,7 +162,7 @@ public class Svm2d {
 		do {
 			attemptToFindMargin++;
 			if (attemptToFindMargin > maxAttemptPerDigit) {
-				System.out.println("Margin was not found. Increasing the misclassification tolerance.");
+//				System.out.println("Margin was not found. Increasing the misclassification tolerance.");
 				setMisclassificationTolerance(true);
 				attemptToFindMargin = 0;
 			}
@@ -193,7 +196,7 @@ public class Svm2d {
 	}
 
 	
-	//--------------TESTING FUNCTIONS-----------------//
+	//-------------- TESTING -----------------//
 
 	/**
 	 * Checks if a vector is on the positive side of the margin
@@ -256,11 +259,10 @@ public class Svm2d {
 //				System.out.println("Prediction = " + prediction + " and actual number is " + verificationNumber);
 			}
 		}
-		printPredictionRate();
 	}
 
 	
-	//--------------DEBUG FUNCTIONS-----------------//
+	//-------------- DEBUG -----------------//
 
 	/**
 	 * Print the list of found margins
@@ -271,5 +273,25 @@ public class Svm2d {
 			System.out.print(mapDigitToMargin.get(key)[0] + " : " + mapDigitToMargin.get(key)[1]);
 			System.out.println(" to classify " + mapDigitToMargin.get(key)[2]);
 		}
+	}
+
+	
+	//-------------- RUN -----------------//
+	
+	public void run(DataSet trainingSet, DataSet testingSet) {
+		
+		initialiseSvmDataStructures(trainingSet, testingSet);
+		train();
+		test();
+		
+		System.out.print("First fold.");
+		printPredictionRate();
+
+		initialiseSvmDataStructures(testingSet, trainingSet);
+		train();
+		test();
+		
+		System.out.print("Second fold.");
+		printPredictionRate();
 	}
 }
