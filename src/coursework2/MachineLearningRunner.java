@@ -29,12 +29,12 @@ public class MachineLearningRunner {
 	 * @param testingSet  is the dataset to test the algorithms
 	 */
 	public static void debugDataSet(DataSet trainingSet, DataSet testingSet) {
-//		trainingSet.printDataSet();
-//		trainingSet.printDataMap(); 
-//		trainingSet.printSimplifiedVector();
-//
-//		testingSet.generateSimplifiedDataSet();
-//		testingSet.printSimplifiedDataSet(); 
+		trainingSet.printDataSet();
+		trainingSet.printDataMap(); 
+		trainingSet.printSimplifiedVector();
+
+		testingSet.generateSimplifiedDataSet();
+		testingSet.printSimplifiedDataSet(); 
 	
 	}
 
